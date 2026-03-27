@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subsea Pulse — Global Cable Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Cesium Globe -->
+    <div id="cesiumContainer"></div>
+
+    <!-- UI Overlay — sits on top of the globe -->
+    <div id="ui-overlay">
+
+      <!-- Top Bar -->
+      <header id="top-bar">
+        <div id="logo">
+          <span class="logo-dot"></span>
+          <span class="logo-text">SUBSEA PULSE</span>
+        </div>
+        <div id="global-health-monitor">
+          <div class="hud-label">GLOBAL LATENCY</div>
+          <div class="hud-value" id="avg-latency">— ms</div>
+          <div class="hud-regions" id="region-latencies">
+            <span class="region-badge" id="lat-NA">NA —</span>
+            <span class="region-badge" id="lat-EU">EU —</span>
+            <span class="region-badge" id="lat-APAC">APAC —</span>
+            <span class="region-badge" id="lat-LATAM">LATAM —</span>
+          </div>
+        </div>
+        <div id="cable-count-display">
+          <div class="hud-label">CABLES ACTIVE</div>
+          <div class="hud-value" id="cable-count">0</div>
+        </div>
+      </header>
+
+      <!-- Cable Inspector Sidebar -->
+      <aside id="cable-sidebar" class="sidebar-hidden">
+        <button id="sidebar-close" aria-label="Close panel">✕</button>
+        <div class="sidebar-header">
+          <div class="sidebar-tag">CABLE INSPECTOR</div>
+          <h2 id="cable-name">—</h2>
+        </div>
+        <div class="sidebar-body">
+          <div class="info-row">
+            <span class="info-label">OWNERS</span>
+            <span class="info-value" id="cable-owners">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">LENGTH</span>
+            <span class="info-value" id="cable-length">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">RFS DATE</span>
+            <span class="info-value" id="cable-rfs">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">LANDING POINTS</span>
+            <span class="info-value" id="cable-landing">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">STATUS</span>
+            <span class="info-value status-active" id="cable-status">ACTIVE</span>
+          </div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="pulse-bar">
+            <div class="pulse-bar-fill" id="pulse-bar-fill"></div>
+          </div>
+          <div class="pulse-bar-label">SIGNAL HEALTH</div>
+        </div>
+      </aside>
+
+      <!-- Bottom Controls -->
+      <div id="bottom-controls">
+
+        <!-- Network Stress Slider -->
+        <div class="control-panel" id="stress-panel">
+          <div class="control-header">
+            <span class="control-label">NETWORK STRESS</span>
+            <span class="control-value" id="stress-value">0%</span>
+          </div>
+          <div class="slider-track">
+            <input
+              type="range"
+              id="stress-slider"
+              min="0"
+              max="100"
+              value="0"
+              class="custom-slider stress-slider"
+            />
+            <div class="slider-gradient stress-gradient"></div>
+          </div>
+          <div class="control-hint">Drag to simulate network congestion</div>
+        </div>
+
+        <!-- Time Machine Slider -->
+        <div class="control-panel" id="time-panel">
+          <div class="control-header">
+            <span class="control-label">TIME MACHINE</span>
+            <span class="control-value" id="year-value">2025</span>
+          </div>
+          <div class="slider-track">
+            <input
+              type="range"
+              id="year-slider"
+              min="1988"
+              max="2025"
+              value="2025"
+              class="custom-slider year-slider"
+            />
+          </div>
+          <div class="control-hint">Show cables operational by year</div>
+        </div>
+
+      </div>
+
+      <!-- Loading Overlay -->
+      <div id="loading-overlay">
+        <div class="loader-content">
+          <div class="loader-ring"></div>
+          <div class="loader-text">INITIALIZING<br /><span id="load-status">Loading terrain…</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
