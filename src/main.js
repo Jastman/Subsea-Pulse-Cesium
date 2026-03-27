@@ -5,8 +5,8 @@
  * and starts the latency simulation.
  */
 
-import * as Cesium from 'cesium';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
+// Cesium is loaded as a global via CDN <script> in index.html
+/* global Cesium */
 
 import { fetchCables, buildCableEntities, findPickedCable } from './CableLoader.js';
 import { LatencySimulator } from './LatencySimulator.js';
@@ -23,8 +23,6 @@ import {
 } from './UI.js';
 
 // ─── Cesium Ion Token ─────────────────────────────────────────────────────────
-// Set your token from https://cesium.com/ion/tokens
-// For development, use the default token or set VITE_CESIUM_ION_TOKEN in .env
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ION_TOKEN;
 
 // ─── Shared mutable state objects (passed by reference to CableLoader) ────────
@@ -36,7 +34,6 @@ const yearFilter     = { maxYear: 2025 };
 setLoadStatus('Initializing globe…');
 
 const viewer = new Cesium.Viewer('cesiumContainer', {
-  // Disable all default chrome
   animation:             false,
   baseLayerPicker:       false,
   fullscreenButton:      false,
@@ -48,31 +45,22 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
   timeline:              false,
   navigationHelpButton:  false,
   navigationInstructionsInitiallyVisible: false,
-  creditContainer:       document.createElement('div'), // hide credits div
-  // Use Cesium World Bathymetry for ocean floor depth
-  terrainProvider: new Cesium.EllipsoidTerrainProvider(), // placeholder, replaced below
+  creditContainer:       document.createElement('div'),
+  terrainProvider: new Cesium.EllipsoidTerrainProvider(),
 });
 
-// ─── Styling ──────────────────────────────────────────────────────────────────
-
-// Deep-space background
 viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#0B0E14');
 viewer.scene.skyBox.show      = true;
 viewer.scene.sun.show         = false;
 viewer.scene.moon.show        = false;
 viewer.scene.skyAtmosphere.show = true;
-
-// Globe appearance
 viewer.scene.globe.baseColor             = Cesium.Color.fromCssColorString('#0d1117');
 viewer.scene.globe.showGroundAtmosphere  = false;
 viewer.scene.globe.enableLighting        = false;
 
-// ─── Bathymetry Terrain + Translucency ───────────────────────────────────────
-
 async function initTerrain() {
   setLoadStatus('Loading bathymetry terrain…');
   try {
-    // Asset 1 = Cesium World Terrain (includes bathymetry option)
     const terrain = await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
       requestWaterMask: false,
       requestVertexNormals: false,
@@ -82,7 +70,6 @@ async function initTerrain() {
     console.warn('Bathymetry terrain unavailable, using ellipsoid:', err.message);
   }
 
-  // Enable globe translucency so we can see cables below the ocean surface
   try {
     viewer.scene.globe.translucency.enabled        = true;
     viewer.scene.globe.translucency.frontFaceAlpha = 0.75;
@@ -96,8 +83,6 @@ async function initTerrain() {
   }
 }
 
-// ─── Camera ──────────────────────────────────────────────────────────────────
-
 function setCameraHome() {
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(10.0, 20.0, 22_000_000),
@@ -108,8 +93,6 @@ function setCameraHome() {
     },
   });
 }
-
-// ─── Main Async Boot ─────────────────────────────────────────────────────────
 
 async function boot() {
   await initTerrain();
@@ -126,26 +109,18 @@ async function boot() {
   }
 
   setLoadStatus(`Building ${features.length} cable routes…`);
-
-  // Give the UI a moment to paint before the heavy entity creation loop
   await new Promise(r => setTimeout(r, 50));
 
   const cableRecords = buildCableEntities(viewer, features, sharedUniforms, yearFilter);
   setCableCount(cableRecords.length);
-
   hideLoadingOverlay();
 
-  // ─── Interactions ───────────────────────────────────────────────────────────
-
-  // Click to inspect a cable
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
   handler.setInputAction((movement) => {
     const picked = viewer.scene.pick(movement.position);
     if (!picked) { hideCableSidebar(); return; }
-
     const record = findPickedCable(cableRecords, picked);
     if (!record) { hideCableSidebar(); return; }
-
     const p = record.properties;
     showCableSidebar({
       name:          p.name             ?? p.cable_name ?? '—',
@@ -157,39 +132,27 @@ async function boot() {
     });
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // Close sidebar when clicking empty space
   handler.setInputAction((movement) => {
     const picked = viewer.scene.pick(movement.position);
     if (!picked) hideCableSidebar();
   }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
-  // ─── UI Controls ────────────────────────────────────────────────────────────
-
   initSidebarClose();
 
   initStressSlider((normalizedStress) => {
     sharedUniforms.stress = normalizedStress;
-    // Also scale speed: 0% stress = 1.0x, 100% stress = 4.0x
     sharedUniforms.speed = 1.0 + normalizedStress * 3.0;
-    // Update latency simulator stress level
     simulator.setStress(normalizedStress);
   });
 
   initYearSlider((year) => {
     yearFilter.maxYear = year;
-    // Recount visible cables
     const visible = cableRecords.filter(r => r.rfsYear === null || r.rfsYear <= year);
     setCableCount(visible.length);
   });
 
-  // ─── Latency Simulator ──────────────────────────────────────────────────────
-
   const simulator = new LatencySimulator();
-  simulator.onUpdate((data) => {
-    updateHUD(data);
-    // Map average latency to a gentle stress influence on the globe glow
-    // (does not override manual slider, just a visual hint)
-  });
+  simulator.onUpdate((data) => { updateHUD(data); });
   simulator.start();
 }
 
