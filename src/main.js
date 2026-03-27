@@ -25,9 +25,7 @@ import {
 // ─── Cesium Ion Token ─────────────────────────────────────────────────────────
 // Set your token from https://cesium.com/ion/tokens
 // For development, use the default token or set VITE_CESIUM_ION_TOKEN in .env
-Cesium.Ion.defaultAccessToken =
-  import.meta.env.VITE_CESIUM_ION_TOKEN ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYWE1OWUxNy1mMWZiLTQzYjYtYTQ0OS1kMWFjYmFkNjc5YzciLCJpZCI6NTc3MzMsImlhdCI6MTYyNzg0NTE4Mn0.XcKpgANiY19MC4bdFUXMVEBToBmqS8kuYpUlxJHYZxk';
+Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ION_TOKEN;
 
 // ─── Shared mutable state objects (passed by reference to CableLoader) ────────
 const sharedUniforms = { speed: 1.0, intensity: 1.2, stress: 0.0 };
